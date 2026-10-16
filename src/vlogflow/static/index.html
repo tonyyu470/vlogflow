@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>VlogFlow · 把日常剪成故事</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<aside class="sidebar">
+  <a class="brand" href="/"><span class="brand-mark">V</span><span>VlogFlow<small>你的日常，值得成片</small></span></a>
+  <button id="new-project" class="new-project">＋ 新建创作</button>
+  <div class="sidebar-label">我的项目</div><nav id="project-list" aria-label="项目列表"></nav>
+  <div class="sidebar-bottom"><span class="local-dot"></span> 在你的电脑上运行 <small>素材、音色与成片保存在本地</small></div>
+</aside>
+<main>
+  <header class="topbar"><span>创作工作台</span><select id="project-switch" class="project-switch" aria-label="切换项目"><option value="">新建项目</option></select><div><button id="open-settings" class="quiet">模型设置</button><span class="badge">LOCAL STUDIO</span><span class="version">v0.1</span></div></header>
+  <section class="heading"><div><p class="eyebrow">FROM EVERYDAY TO A STORY</p><h1 id="page-title">把日常，剪成你的故事。</h1><p id="page-description">先决定说什么，再用你的声音，把画面串起来。</p></div><div class="outline-logo" aria-hidden="true">▸</div></section>
+  <div id="notice" role="alert" class="notice" hidden></div>
+  <section id="create-panel" class="panel create-panel">
+    <div class="section-top"><span class="number">01</span><div><h2>这次想记录什么？</h2><p>主题、地点、想传递的感受，以及必须包含的事实。</p></div></div>
+    <label for="new-brief">创作需求</label><textarea id="new-brief" rows="5" placeholder="例如：记录一次夜间散步。希望轻松自然，突出路边小店和城市的生活气息。"></textarea>
+    <div class="form-row"><label>解说语言<select id="new-language" aria-label="解说语言"><option value="zh">中文</option><option value="en">English</option></select></label><button id="create" class="primary">创建项目，导入素材 →</button></div>
+    <div class="intro-features"><span>01 画面分析与脚本审核</span><span>02 选择字幕语言</span><span>03 你的音色，生成成片</span></div>
+  </section>
+  <section id="workspace" hidden>
+    <nav class="steps" aria-label="创作步骤"><button data-step="1" class="active"><span>1</span>素材与脚本<small>先审核，再生成</small></button><button data-step="2"><span>2</span>字幕语言<small>独立选择中英文</small></button><button data-step="3"><span>3</span>音色与成片<small>让故事有你的声音</small></button></nav>
+    <section id="step-1" class="step-panel">
+      <div class="panel"><div class="section-top between"><div><h2>创作需求</h2><p>这些信息会和视频画面一起用于生成脚本。</p></div><span id="revision-badge" class="pill">草稿</span></div>
+        <textarea id="brief" rows="3" aria-label="创作需求"></textarea><div class="form-row"><label>解说语言<select id="language" aria-label="解说语言"><option value="zh">中文</option><option value="en">English</option></select></label><button id="save-brief" class="secondary">保存需求</button></div>
+      </div>
+      <div class="panel"><div class="section-top between"><div><h2>你的素材 <span id="media-count" class="muted"></span></h2><p>多段视频会按脚本组合；默认保持完整画面。</p></div><button id="choose-videos" class="secondary">＋ 选择视频</button></div>
+        <input id="video-input" type="file" multiple accept="video/*" hidden>
+        <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="拖入或选择多个视频"><span>↥</span><strong>把视频拖到这里</strong><small>MP4 / MOV / MKV / WEBM · 每段最长 10 分钟</small></div>
+        <details><summary>也可以导入这台电脑上的文件或文件夹路径</summary><div class="path-row"><textarea id="video-paths" rows="2" placeholder="粘贴本机绝对路径，每行一个" aria-label="视频路径"></textarea><button id="import-paths" class="secondary">导入路径</button></div></details>
+        <div id="media-list" class="media-grid"></div>
+      </div>
+      <div class="panel"><div class="section-top between"><div><h2>逐镜头脚本</h2><p>调整顺序、选段和解说。确认后的文字将用于配音。</p></div><button id="analyze" class="primary">分析画面，生成脚本</button></div>
+        <p id="script-empty" class="empty-hint">导入素材后生成脚本，也可以手动添加镜头开始创作。</p><div id="scene-list"></div>
+        <div class="form-row"><button id="add-scene" class="quiet">＋ 添加镜头</button><div class="actions"><button id="save-script" class="secondary">保存修改</button><button id="approve" class="primary">确认脚本并继续 →</button></div></div>
+      </div>
+    </section>
+    <section id="step-2" class="step-panel" hidden><div class="panel"><div class="section-top between"><div><h2>字幕，面向你的观众</h2><p id="subtitle-note">字幕语言不会改变审核后的解说语言。</p></div><button id="change-subtitle" class="secondary">选择字幕语言</button></div><div id="subtitle-summary" class="subtitle-summary"></div><div class="form-row"><p class="muted">需要翻译时，会使用已配置的语言模型。生成后可以直接修改。</p><button id="translate" class="primary">生成字幕译文</button></div><div id="translations"></div><div class="actions end"><button id="save-translations" class="secondary">保存字幕修改</button><button id="to-voice" class="primary">下一步：选择音色 →</button></div></div></section>
+    <section id="step-3" class="step-panel" hidden><div class="voice-layout"><div class="panel"><div class="section-top"><span class="number">A</span><div><h2>用你的声音讲述</h2><p>建议 4–30 秒清晰独白，尽量没有音乐和环境噪音。</p></div></div><button id="choose-audio" class="secondary full">↑ 上传参考录音</button><input id="audio-input" type="file" accept=".wav,.mp3,.m4a,.flac,.aac,.ogg" hidden><div class="path-row"><input id="audio-path" placeholder="或粘贴本机音频路径" aria-label="参考录音路径"><button id="import-audio" class="secondary">导入</button></div><details><summary>直接提供录音文字（可跳过自动转写）</summary><textarea id="manual-reference" rows="3" placeholder="逐字填写这段参考录音说了什么，不是成片解说。"></textarea></details><div id="reference-section" hidden><audio id="reference-player" controls></audio><p id="reference-info" class="muted"></p><label for="reference-text">核对参考录音文字</label><textarea id="reference-text" rows="4"></textarea><div class="actions"><button id="save-reference" class="secondary">保存录音文字</button><button id="audition" class="secondary">试听第一句</button></div><audio id="audition-player" controls hidden></audio></div></div>
+      <div class="panel export-panel"><div class="section-top"><span class="number">B</span><div><h2>准备生成成片</h2><p>审核脚本 → 克隆配音 → 对齐字幕 → 剪辑渲染</p></div></div><div id="export-summary"></div><label>成片画幅<select id="aspect"><option value="source">跟随首个素材</option><option value="portrait">竖屏 9:16</option><option value="landscape">横屏 16:9</option></select></label><p class="muted">混合画幅使用留边适配。配音超过选段时会提示你调整脚本。</p><button id="render" class="primary full big">生成 MP4 成片 →</button><small>Qwen 在本机运行。首次生成需要下载模型和足够的可用内存。</small></div></div>
+      <section id="result" class="panel" hidden><div class="section-top between"><div><h2>成片已就绪</h2><p>听听你的声音，看看这个故事。</p></div><a id="download-video" class="primary" download>下载 MP4 ↓</a></div><video id="result-video" controls playsinline></video><div class="actions"><a id="download-srt" class="quiet" download>下载字幕 SRT</a><a id="download-script" class="quiet" download>下载最终脚本 JSON</a></div></section>
+    </section>
+    <section id="job-panel" class="job-panel" aria-live="polite" hidden><div><span id="job-indicator" class="spinner"></span><strong id="job-phase"></strong><p id="job-error"></p></div><div class="actions"><button id="cancel-job" class="secondary">取消任务</button><button id="retry-job" class="secondary" hidden>重试</button></div></section>
+  </section>
+  <footer>VlogFlow · 开源的本地视频创作工作台 <span>先让故事成立，再让画面流动。</span></footer>
+</main>
+<dialog id="subtitle-dialog"><form method="dialog"><button class="close" aria-label="关闭">×</button></form><p class="eyebrow">STEP 02</p><h2>为这支视频选择字幕</h2><p>解说仍使用已确认脚本的语言。</p><div class="language-options"><label><input type="radio" name="subtitle" value="zh"><span>中<small>中文字幕</small></span></label><label><input type="radio" name="subtitle" value="en"><span>En<small>English subtitles</small></span></label><label><input type="radio" name="subtitle" value="bilingual" checked><span>中 / En<small>中英对照</small></span></label></div><button id="confirm-subtitle" class="primary full">确认字幕语言 →</button></dialog>
+<dialog id="preview-dialog"><form method="dialog"><button class="close" aria-label="关闭预览">×</button></form><video id="source-preview" controls playsinline></video><p id="source-description"></p></dialog>
+<dialog id="settings-dialog" class="settings-dialog"><form method="dialog"><button class="close" aria-label="关闭设置">×</button></form><p class="eyebrow">YOUR LOCAL STUDIO</p><h2>模型与设置</h2><p>本地 Ollama 不需要 API 费用；自配 API 的费用由提供方收取。</p><form id="settings-form"><label>画面与文本模型提供方<select name="provider"><option value="ollama">本地 Ollama</option><option value="openai">OpenAI 兼容接口</option></select></label><p id="provider-disclosure" class="callout"></p><label>接口地址<input name="endpoint" type="url" required></label><label>模型名称<input name="model" required placeholder="qwen3-vl:2b"></label><label>API Key<input name="api_key" type="password" autocomplete="new-password" placeholder="留空保留已有密钥"></label><details><summary>本地音色模型与高级设置</summary><label>音色后端<select name="tts_backend"><option value="mlx">Qwen MLX · Apple Silicon</option><option value="torch">Qwen PyTorch · 实验性</option></select></label><label>Qwen 模型目录<input name="tts_model" placeholder="留空使用默认下载目录"></label><label>Whisper 模型目录<input name="asr_model" placeholder="留空使用默认下载目录"></label><label>TTS Python 解释器<input name="worker_python"></label><label>启动前最低可用内存（GiB）<input name="min_available_gib" type="number" min="4.1" step="0.1"></label></details><div class="actions end"><button type="button" id="test-provider" class="secondary">保存并测试连接</button><button type="submit" class="primary">保存设置</button></div><p id="settings-status" role="status"></p></form><details><summary>首次安装模型</summary><pre>ollama pull qwen3-vl:2b
+vlogflow models download qwen-mlx
+vlogflow models download asr</pre><p>详见仓库安装说明。模型只需下载一次，仓库不包含模型权重。</p></details></dialog>
+<script src="/app.js" defer></script>
+</body></html>

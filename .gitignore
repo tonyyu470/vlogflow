@@ -14,3 +14,13 @@ dist/
 *.sqlite*
 .DS_Store
 local-data/
+*.mp4
+*.mov
+*.m4a
+*.wav
+*.mp3
+*.flac
+*.safetensors
+*.bin
+*.log
+settings.json

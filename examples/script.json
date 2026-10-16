@@ -1,0 +1,15 @@
+{
+  "language": "en",
+  "brief": "A quiet walk in the park. Keep the narration short and natural.",
+  "scenes": [
+    {
+      "id": "s1",
+      "media_id": "replace_with_an_imported_media_id",
+      "start": 0,
+      "end": 8,
+      "description": "Use an actual observed shot from the imported clip.",
+      "narration": "A little fresh air makes a good start to the day.",
+      "ambient": 0.12
+    }
+  ]
+}
