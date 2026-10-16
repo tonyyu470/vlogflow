@@ -4,9 +4,11 @@ import json
 from pathlib import Path
 
 from .alignment import caption_cues
+from .cache import read_json, valid_wave, write_json
 from .domain import digest
 from .media import VIDEO_EXTENSIONS, file_hash, import_video, prepare_reference, render
 from .providers import Provider, analyze_clip, compose_script, translate_script
+from .uploads import uploaded_name
 from .voice import generate_voice, transcribe
 
 
@@ -18,27 +20,39 @@ def analyze_source_speech(media, settings, root, runner):
     folder.mkdir(parents=True, exist_ok=True)
     audio = folder / (media["sha256"] + ".wav")
     seconds = min(30, media["duration"])
-    if not audio.exists():
-        runner.run(
-            [
-                settings.ffmpeg,
-                "-v",
-                "error",
-                "-y",
-                "-i",
-                media["path"],
-                "-t",
-                str(seconds),
-                "-vn",
-                "-ac",
-                "1",
-                "-ar",
-                "24000",
-                "-c:a",
-                "pcm_s24le",
-                str(audio),
-            ]
-        )
+    marker = audio.with_suffix(".json")
+    completed = read_json(
+        marker, lambda data: audio.is_file() and data["sha256"] == file_hash(audio) and valid_wave(audio)
+    )
+    if completed is None:
+        temp = audio.with_suffix(".partial.wav")
+        try:
+            runner.run(
+                [
+                    settings.ffmpeg,
+                    "-v",
+                    "error",
+                    "-y",
+                    "-i",
+                    media["path"],
+                    "-t",
+                    str(seconds),
+                    "-vn",
+                    "-ac",
+                    "1",
+                    "-ar",
+                    "24000",
+                    "-c:a",
+                    "pcm_s24le",
+                    str(temp),
+                ]
+            )
+            if not valid_wave(temp):
+                raise ValueError("Source audio extraction returned an invalid waveform")
+            temp.replace(audio)
+            write_json(marker, dict(sha256=file_hash(audio)))
+        finally:
+            temp.unlink(missing_ok=True)
     result = transcribe(audio, settings, root, runner)
     return dict(
         speech_detected=bool(result["words"]),
@@ -68,7 +82,14 @@ def run_job(job, settings, root, runner):
         seen = {m["id"] for m in media}
         for i, path in enumerate(paths):
             runner.phase(f"importing {i + 1}/{len(paths)}")
-            m = import_video(path, project_dir / "media", runner, settings.ffmpeg, settings.ffprobe)
+            m = import_video(
+                path,
+                project_dir / "media",
+                runner,
+                settings.ffmpeg,
+                settings.ffprobe,
+                name=uploaded_name(path, project_dir / "uploads"),
+            )
             if m["id"] not in seen:
                 media.append(m)
                 seen.add(m["id"])
@@ -94,11 +115,18 @@ def run_job(job, settings, root, runner):
                 )
             )
             path = cache / f"{key}.json"
-            if path.exists():
-                analysis = json.loads(path.read_text())
-            else:
+            analysis = read_json(
+                path,
+                lambda data: (
+                    isinstance(data.get("description"), str)
+                    and bool(data["description"].strip())
+                    and isinstance(data.get("evidence"), list)
+                    and isinstance(data.get("uncertainties"), list)
+                ),
+            )
+            if analysis is None:
                 analysis = analyze_clip(provider, m)
-                path.write_text(json.dumps(analysis, ensure_ascii=False, indent=2))
+                write_json(path, analysis)
             speech = {}
             asr_path = Path(settings.asr_model).expanduser() if settings.asr_model else root / "models/asr"
             if asr_path.is_dir():

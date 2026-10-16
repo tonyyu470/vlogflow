@@ -6,6 +6,8 @@
 
 VlogFlow is a local browser application with a review-first workflow:
 
+**v0.1.0 preview:** the browser flow and synthetic rendering are verified. A complete real vision-model and Qwen narration run through this new application is still pending. Start with a short clip and read the [verification record](docs/verification.md).
+
 1. Import multiple clips and describe your idea. A vision model examines timestamped sample frames and drafts an editable shot-by-shot script. Review narration, source ranges, ordering and ambient audio.
 2. Select Chinese, English or bilingual captions. Narration language follows the approved script; caption language is independent. Review and edit translations.
 3. Upload a reference recording or enter its local path, correct its transcript, audition the voice and render an MP4. Download the MP4, SRT and final script JSON.
@@ -57,21 +59,23 @@ SQLite retains revisions and job state. Uploaded files, imported media copies, r
 
 ## Current limitations
 
-This is the initial **v0.1.0** release. See the [verification record](docs/verification.md) for exact tested behavior.
+This is the **v0.1.0 preview** release. See the [verification record](docs/verification.md) for exact tested behavior.
 
 - Apple Silicon is the primary target. The official Qwen PyTorch adapter is experimental and has not been hardware-tested on Windows, Linux or CUDA. See the Chinese usage guide for setup.
 - Vision uses three representative frames per source, not exhaustive video understanding. Review all facts and narration.
 - When ASR is configured, the first 30 seconds of each source are checked for existing speech. Preview the clips and mute original audio where appropriate; automatic speech separation is not included.
 - ASR checks transcription/alignment, not subjective speaker similarity. Clean reference speech matters. Cross-language cloning and very short utterances may need iteration.
 - Chinese and English are supported. Prefer one or two short sentences per scene.
-- Up to 50 source clips per project, 10 minutes per clip, 4 GiB per file. Reference recordings: 3–30 seconds, up to 64 MiB uploaded.
+- Up to 50 source clips per project, 10 minutes per clip, 4 GiB per file. Reference recordings: 3–30 seconds, up to 64 MiB uploaded. Upload batches are limited to 8 GiB; use local paths for larger collections.
 - H.264/AAC output at 30 fps, 720-pixel short edge; aspect mismatches are letterboxed.
 
 ## Development
 
 ```bash
-uv pip install -e '.[dev]'
+uv pip install -e '.[dev,asr]'
 pytest
+# Node.js 22+ is only needed for frontend development tests
+node --test tests/frontend.test.cjs
 python -m build
 ```
 

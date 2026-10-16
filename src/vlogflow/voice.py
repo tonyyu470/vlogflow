@@ -8,6 +8,7 @@ import numpy as np
 import soundfile as sf
 
 from .alignment import align_scenes, tokens
+from .cache import read_json, valid_wave, write_json
 from .config import Settings
 from .domain import digest
 from .media import file_hash
@@ -75,7 +76,22 @@ def transcribe(audio: Path, settings: Settings, root: Path, runner: Runner, lang
     folder = root / "cache/asr"
     folder.mkdir(parents=True, exist_ok=True)
     output = folder / f"{key}.json"
-    if not output.exists():
+
+    def valid_asr(data):
+        return (
+            isinstance(data.get("text"), str)
+            and isinstance(data.get("language"), str)
+            and (
+                isinstance(data.get("words"), list)
+                and all(
+                    isinstance(w["word"], str) and 0 <= w["start"] <= w["end"] < float("inf")
+                    for w in data["words"]
+                )
+            )
+        )
+
+    cached = read_json(output, valid_asr)
+    if cached is None:
         temp = output.with_suffix(".partial")
         runner.run(
             [
@@ -94,22 +110,31 @@ def transcribe(audio: Path, settings: Settings, root: Path, runner: Runner, lang
             ],
             budget=ASR_BUDGET,
         )
-        data = json.loads(temp.read_text())
-        if not isinstance(data.get("words"), list):
+        data = read_json(temp, valid_asr)
+        if data is None:
             raise ValueError("Speech recognition did not return timestamps")
         temp.replace(output)
-    return json.loads(output.read_text())
+        return data
+    return cached
 
 
-def _cached(folder):
-    result = folder / "result.json"
-    if result.exists():
-        data = json.loads(result.read_text())
-        if all(
-            Path(s["path"]).is_file() and file_hash(Path(s["path"])) == s["sha256"] for s in data["segments"]
-        ):
-            return data
-    return None
+def _cached(folder, count=None):
+    return read_json(
+        folder / "result.json",
+        lambda data: (
+            isinstance(data.get("segments"), list)
+            and bool(data["segments"])
+            and (count is None or len(data["segments"]) == count)
+            and all(
+                Path(s["path"]).is_file()
+                and file_hash(Path(s["path"])) == s["sha256"]
+                and valid_wave(Path(s["path"]), s["duration"])
+                and isinstance(s["words"], list)
+                and bool(s["words"])
+                for s in data["segments"]
+            )
+        ),
+    )
 
 
 def generate_voice(scenes, language, reference, settings: Settings, root: Path, runner: Runner):
@@ -149,7 +174,7 @@ def generate_voice(scenes, language, reference, settings: Settings, root: Path, 
         keys.append(key)
         folder = root / "cache/voice" / key
         folder.mkdir(parents=True, exist_ok=True)
-        cached = _cached(folder)
+        cached = _cached(folder, len(group))
         if cached:
             # Cache IDs belong to the current script, even across projects with identical narration.
             for s, segment in zip(group, cached["segments"]):
@@ -235,6 +260,6 @@ def generate_voice(scenes, language, reference, settings: Settings, root: Path, 
                 )
             )
         result = dict(segments=segments, key=key, recognized_text=asr["text"])
-        (folder / "result.json").write_text(json.dumps(result, ensure_ascii=False, indent=2))
+        write_json(folder / "result.json", result)
         all_segments += segments
     return dict(segments=all_segments, key=digest(keys), model=record["repo"], revision=record["revision"])

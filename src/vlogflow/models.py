@@ -5,6 +5,7 @@ import json
 import struct
 from pathlib import Path
 
+from .cache import read_json, write_json
 from .media import file_hash
 
 ASSETS = Path(__file__).parent / "assets"
@@ -101,11 +102,6 @@ def subset_weights(source: Path, prefix: str, target: Path, excluded=()):
 def prepare_components(model: Path, target: Path, runner):
     target.mkdir(parents=True, exist_ok=True)
     marker = target / "components.json"
-    if marker.exists():
-        records = json.loads(marker.read_text())
-        if all((target / k).is_file() and file_hash(target / k) == v["sha256"] for k, v in records.items()):
-            return target
-    runner.check()
     specs = [
         ("speaker.safetensors", model / "model.safetensors", "speaker_encoder.", ()),
         ("encoder.safetensors", model / "speech_tokenizer/model.safetensors", "encoder.", ()),
@@ -117,9 +113,20 @@ def prepare_components(model: Path, target: Path, runner):
             ("talker.model.text_embedding.weight",),
         ),
     ]
+    expected = {s[0] for s in specs}
+    records = read_json(
+        marker,
+        lambda data: (
+            set(data) == expected
+            and all((target / k).is_file() and file_hash(target / k) == v["sha256"] for k, v in data.items())
+        ),
+    )
+    if records is not None:
+        return target
+    runner.check()
     records = {}
     for name, source, prefix, excluded in specs:
         runner.check()
         records[name] = subset_weights(source, prefix, target / name, excluded)
-    marker.write_text(json.dumps(records, indent=2))
+    write_json(marker, records)
     return target

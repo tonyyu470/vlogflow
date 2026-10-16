@@ -54,7 +54,7 @@ def probe(path: Path, runner: Runner, ffprobe="ffprobe") -> dict:
     return result
 
 
-def import_video(source: Path, directory: Path, runner: Runner, ffmpeg="ffmpeg", ffprobe="ffprobe"):
+def import_video(source: Path, directory: Path, runner: Runner, ffmpeg="ffmpeg", ffprobe="ffprobe", name=None):
     source = source.expanduser().resolve()
     if not source.is_file() or source.suffix.lower() not in VIDEO_EXTENSIONS:
         raise ValueError("Choose a supported local video file")
@@ -96,7 +96,7 @@ def import_video(source: Path, directory: Path, runner: Runner, ffmpeg="ffmpeg",
                 ]
             )
         frames.append(dict(time=round(stamp, 3), path=str(frame)))
-    return dict(id=sha[:24], sha256=sha, name=source.name, path=str(target), frames=frames, **info)
+    return dict(id=sha[:24], sha256=sha, name=name or source.name, path=str(target), frames=frames, **info)
 
 
 def prepare_reference(source: Path, directory: Path, runner: Runner, ffmpeg="ffmpeg"):

@@ -3,12 +3,11 @@ from __future__ import annotations
 import asyncio
 import hmac
 import secrets
-import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
@@ -17,10 +16,10 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from .config import Settings, data_root, load_settings, public_settings, save_settings
 from .domain import ProjectEdit
 from .jobs import Jobs, public_job
-from .media import AUDIO_EXTENSIONS, VIDEO_EXTENSIONS
 from .processes import Runner
 from .providers import Provider
 from .store import Conflict, Store
+from .uploads import receive_uploads
 
 
 class NewProject(BaseModel):
@@ -159,36 +158,10 @@ def create_app(root: Path | None = None):
         return store.edit(pid, {"voice": dict(p["voice"], transcript=body.transcript.strip())}, body.epoch)
 
     @app.post("/api/projects/{pid}/uploads")
-    async def uploads(pid: str, files: list[UploadFile] = File(...)):
+    async def uploads(pid: str, request: Request):
         store.get(pid)
-        if not 1 <= len(files) <= 50:
-            raise ValueError("Upload 1–50 files at a time")
         folder = root / "projects" / pid / "uploads"
-        folder.mkdir(parents=True, exist_ok=True)
-        paths = []
-        for upload in files:
-            suffix = Path(upload.filename or "").suffix.lower()
-            if suffix not in VIDEO_EXTENSIONS | AUDIO_EXTENSIONS:
-                raise ValueError("Unsupported audio or video extension")
-            maximum = 64 * 1024**2 if suffix in AUDIO_EXTENSIONS else 4 * 1024**3
-            path = folder / (uuid.uuid4().hex + suffix)
-            partial = path.with_suffix(".partial")
-            try:
-                count = 0
-                with partial.open("wb") as f:
-                    while chunk := await upload.read(1024**2):
-                        count += len(chunk)
-                        if count > maximum:
-                            raise ValueError("Uploaded file is too large (audio 64 MiB; video 4 GiB)")
-                        f.write(chunk)
-                if not count:
-                    raise ValueError("Uploaded file is empty")
-                partial.replace(path)
-                paths.append(str(path))
-            finally:
-                partial.unlink(missing_ok=True)
-                await upload.close()
-        return {"paths": paths}
+        return {"paths": await receive_uploads(request, folder)}
 
     @app.get("/api/projects/{pid}/jobs")
     def project_jobs(pid: str):
