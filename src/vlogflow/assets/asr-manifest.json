@@ -1,0 +1,26 @@
+{
+  "repo": "Systran/faster-whisper-base",
+  "revision": "ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66",
+  "files": [
+    {
+      "file": "config.json",
+      "sha256": null,
+      "bytes": 2309
+    },
+    {
+      "file": "model.bin",
+      "sha256": "d01c3014881c9c6f3133c182f3d2887eb6ca1c789a7538c5c007196857a0a6a9",
+      "bytes": 145217532
+    },
+    {
+      "file": "tokenizer.json",
+      "sha256": null,
+      "bytes": 2203239
+    },
+    {
+      "file": "vocabulary.txt",
+      "sha256": null,
+      "bytes": 459861
+    }
+  ]
+}
