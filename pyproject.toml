@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vlogflow"
+version = "0.1.0"
+description = "Local, review-first video creation with cloned narration and bilingual captions"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = "MIT"
+authors = [{name = "VlogFlow contributors"}]
+dependencies = [
+  "fastapi>=0.115,<1", "uvicorn>=0.34,<1", "httpx>=0.28,<1",
+  "pydantic>=2.10,<3", "python-multipart>=0.0.20,<1",
+  "pillow>=11,<13", "numpy>=2.0,<3", "soundfile>=0.13,<1",
+  "psutil>=6,<8", "platformdirs>=4,<5", "huggingface-hub>=0.30,<2"
+]
+
+[project.optional-dependencies]
+mlx = ["mlx-audio==0.5.9; sys_platform == 'darwin' and platform_machine == 'arm64'", "transformers==5.19.0"]
+asr = ["faster-whisper>=1.2,<2"]
+torch = ["qwen-tts>=0.1,<1"]
+dev = ["pytest>=8,<10", "build>=1.2,<2", "ruff>=0.12,<1"]
+
+[project.scripts]
+vlogflow = "vlogflow.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vlogflow"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "docs", "examples", "pyproject.toml", "README*", "LICENSE", "THIRD_PARTY_NOTICES.md", "CHANGELOG.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
