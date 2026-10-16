@@ -139,6 +139,8 @@ class Store:
             accepted = p['epoch']==j['epoch'] and not j['cancel_requested']
             if accepted:
                 p.update(changes); p['status']=status
+                if j['kind'] in ('import','analyze','reference','subtitles'):
+                    p['epoch'] += 1
                 self._put_project(db,p)
             j['status'] = 'complete' if accepted else ('cancelled' if j['cancel_requested'] else 'superseded')
             j['phase']=j['status']

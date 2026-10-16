@@ -81,7 +81,9 @@ if args.stage == 'reference':
     del weights; gc.collect(); mx.clear_cache()
     embedding = Model.extract_speaker_embedding(SimpleNamespace(speaker_encoder=speaker), ref)
     mx.eval(embedding)
-    mx.save_safetensors(str(FEATURES), {'codes': codes, 'speaker': embedding}, metadata={'reference_sha256': ref_hash})
+    temporary_features = FEATURES.with_suffix('.partial.safetensors')
+    mx.save_safetensors(str(temporary_features), {'codes': codes, 'speaker': embedding}, metadata={'reference_sha256': ref_hash})
+    temporary_features.replace(FEATURES)
     record('complete', reference_codes_shape=list(codes.shape), speaker_shape=list(embedding.shape))
 
 elif args.stage == 'codes':
