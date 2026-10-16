@@ -6,7 +6,7 @@
 
 VlogFlow is a local browser application with a review-first workflow:
 
-**v0.1.0 preview:** the browser flow and synthetic rendering are verified. A complete real vision-model and Qwen narration run through this new application is still pending. Start with a short clip and read the [verification record](docs/verification.md).
+**v0.1.1 preview:** local Qwen3-VL analysis and draft generation with five clips, the browser flow and synthetic rendering are verified. A real Qwen narration-to-render run through this new application is still pending. Review generated facts and narration length; see the [verification record](docs/verification.md).
 
 1. Import multiple clips and describe your idea. A vision model examines timestamped sample frames and drafts an editable shot-by-shot script. Review narration, source ranges, ordering and ambient audio.
 2. Select Chinese, English or bilingual captions. Narration language follows the approved script; caption language is independent. Review and edit translations.
@@ -59,7 +59,7 @@ SQLite retains revisions and job state. Uploaded files, imported media copies, r
 
 ## Current limitations
 
-This is the **v0.1.0 preview** release. See the [verification record](docs/verification.md) for exact tested behavior.
+This is the **v0.1.1 preview** release. See the [verification record](docs/verification.md) for exact tested behavior.
 
 - Apple Silicon is the primary target. The official Qwen PyTorch adapter is experimental and has not been hardware-tested on Windows, Linux or CUDA. See the Chinese usage guide for setup.
 - Vision uses three representative frames per source, not exhaustive video understanding. Review all facts and narration.

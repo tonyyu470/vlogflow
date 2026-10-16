@@ -111,7 +111,7 @@ def run_job(job, settings, root, runner):
                     provider=settings.provider,
                     endpoint=settings.endpoint,
                     model=settings.model,
-                    version=1,
+                    version=2,
                 )
             )
             path = cache / f"{key}.json"

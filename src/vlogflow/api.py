@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from . import __version__
 from .config import Settings, data_root, load_settings, public_settings, save_settings
 from .domain import ProjectEdit
 from .jobs import Jobs, public_job
@@ -58,7 +59,7 @@ def create_app(root: Path | None = None):
         finally:
             await asyncio.to_thread(app.state.jobs.close)
 
-    app = FastAPI(title="VlogFlow", version="0.1.0", lifespan=lifespan, docs_url=None, redoc_url=None)
+    app = FastAPI(title="VlogFlow", version=__version__, lifespan=lifespan, docs_url=None, redoc_url=None)
     app.state.store = store
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "[::1]"])
 
@@ -95,7 +96,7 @@ def create_app(root: Path | None = None):
 
     @app.get("/api/bootstrap")
     def bootstrap():
-        return dict(token=token, version="0.1.0", data_directory=str(root))
+        return dict(token=token, version=__version__, data_directory=str(root))
 
     @app.get("/api/settings")
     def get_settings():

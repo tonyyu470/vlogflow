@@ -77,7 +77,7 @@ def test_truncated_analysis_cache_is_regenerated(tmp_path, monkeypatch):
             provider=settings.provider,
             endpoint=settings.endpoint,
             model=settings.model,
-            version=1,
+            version=2,
         )
     )
     folder = tmp_path / "cache/analysis"
